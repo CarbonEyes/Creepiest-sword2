@@ -3,9 +3,6 @@ import sys
 from botao import Botao
 import pygame
 from cena import Cena
-# Importações locais de CenaJogo e CenaOpcoes para evitar dependências circulares
-# from cena_opcoes import CenaOpcoes
-# from cena_jogo import CenaJogo
 
 class CenaMenu(Cena):
     """
@@ -20,7 +17,6 @@ class CenaMenu(Cena):
         self.jogo = jogo
         self.botoes = []  
 
-        # Criar botões
         btn_jogar = Botao(
             x=jogo.largura//2 - 100,
             y=200,
@@ -29,69 +25,69 @@ class CenaMenu(Cena):
             texto="Novo Jogo", 
             cor_normal=(100, 255, 100),
             cor_hover=(50, 200, 50),
-            acao=self.iniciar_novo_jogo 
+            acao=self._iniciar_novo_jogo # Chamando o método privado
         )
 
         btn_continuar = Botao(
             x=jogo.largura//2 - 100,
-            y=275, # Posição ajustada para o novo botão
+            y=275, 
             largura=200,
             altura=50,
             texto="Continuar",
             cor_normal=(100, 150, 255),
             cor_hover=(50, 100, 200),
-            acao=self.continuar_jogo
+            acao=self._continuar_jogo # Chamando o método privado
         )
         
         btn_opcoes = Botao(
             x=jogo.largura//2 - 100,
-            y=350, # Posição ajustada
+            y=350, 
             largura=200,
             altura=50,
             texto="Opções",
             cor_normal=(100, 100, 255),
             cor_hover=(50, 50, 200),
-            acao=self.ir_para_opcoes 
+            acao=self._ir_para_opcoes # Chamando o método privado
         )
         
         btn_sair = Botao(
             x=jogo.largura//2 - 100,
-            y=425, # Posição ajustada
+            y=425, 
             largura=200,
             altura=50,
             texto="Sair",
             cor_normal=(255, 100, 100),
             cor_hover=(200, 50, 50),
-            acao=self.sair
+            acao=self._sair # Chamando o método privado
         )
         
         self.botoes.extend([btn_jogar, btn_continuar, btn_opcoes, btn_sair]) 
     
-    def iniciar_novo_jogo(self) -> None:
+    def _iniciar_novo_jogo(self) -> None: # TORNADO PRIVADO
         """
         Função chamada ao clicar no botão "Novo Jogo".
         Inicia uma nova CenaJogo.
         """
         print("Iniciando novo jogo...")
-        from cena_jogo import CenaJogo # Importação local para evitar ciclo
-        self.jogo.mudar_cena(CenaJogo(self.jogo)) # Inicia CenaJogo sem dados iniciais
+        from cena_jogo import CenaJogo 
+        self.jogo.mudar_cena(CenaJogo(self.jogo)) 
     
-    def continuar_jogo(self) -> None:
+    def _continuar_jogo(self) -> None: # TORNADO PRIVADO
         """
         Função chamada ao clicar no botão "Continuar".
         Tenta carregar um jogo salvo através do objeto Jogo.
         """
         print("Tentando carregar jogo...")
-        self.jogo.load_game_state() # Chama o método de carregamento do Jogo
+        self.jogo.load_game_state() 
 
-    def ir_para_opcoes(self) -> None:
+    def _ir_para_opcoes(self) -> None: # TORNADO PRIVADO
         """
         Função chamada ao clicar no botão "Opções", muda para a cena de opções.
         """
-        from cena_opcoes import CenaOpcoes # Importação local para evitar ciclo
+        from cena_opcoes import CenaOpcoes 
         self.jogo.mudar_cena(CenaOpcoes(self.jogo))
         
-    def sair(self) -> None:
+    def _sair(self) -> None: # TORNADO PRIVADO
         """
         Função chamada ao clicar no botão "Sair", encerra o Pygame e o sistema.
         """
@@ -112,10 +108,10 @@ class CenaMenu(Cena):
         Args:
             tela (pygame.Surface): A superfície onde a cena será desenhada.
         """
-        tela.fill((240, 240, 240))  # Fundo cinza claro
+        tela.fill((240, 240, 240))  
         
         fonte_titulo = pygame.font.SysFont('Arial', 48, bold=True)
-        titulo = fonte_titulo.render("CYBERBUG 2077", True, (0, 0, 0))
+        titulo = fonte_titulo.render("Creepiest SWORD", True, (0, 0, 0))
         tela.blit(titulo, (self.jogo.largura//2 - titulo.get_width()//2, 80))
         
         for botao in self.botoes:
