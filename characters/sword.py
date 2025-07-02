@@ -1,7 +1,7 @@
 import pygame
 import math
 from core.settings import SWORD_GROWTH_PER_COIN, COINS_FOR_SWORD_LEVEL_UP 
-from world.projectile import Projectile # <--- ADICIONE ESTA LINHA [cite: sword_180_degree_swing]
+from world.projectile import Projectile
 
 class Sword(pygame.sprite.Sprite):
     def __init__(self) -> None:
@@ -9,12 +9,12 @@ class Sword(pygame.sprite.Sprite):
 
         try:
             self.original_image = pygame.image.load("assets/images/sword.png").convert_alpha()
-            self.original_image = pygame.transform.scale(self.original_image, (45, 150)) # Tamanho base da espada
+            self.original_image = pygame.transform.scale(self.original_image, (45, 150)) 
         except pygame.error:
             print("Erro: Imagem da espada (sword.png) não encontrada. Usando um retângulo como placeholder.")
-            self.original_image = pygame.Surface((45, 150), pygame.SRCALPHA) # Placeholder
+            self.original_image = pygame.Surface((45, 150), pygame.SRCALPHA) 
             self.original_image.fill((150, 150, 150)) 
-            pygame.draw.rect(self.original_image, (100, 50, 0), (15, 120, 15, 30)) # Cabo do placeholder
+            pygame.draw.rect(self.original_image, (100, 50, 0), (15, 120, 15, 30)) 
 
         self.scaled_current_image = self.original_image.copy() 
         self.image = self.scaled_current_image 
@@ -23,7 +23,7 @@ class Sword(pygame.sprite.Sprite):
         self.base_width: int = self.original_image.get_width()
         self.base_height: int = self.original_image.get_height()
         self.current_growth_level: int = 0
-        self.current_damage: int = 5 
+        self._current_damage: int = 5 # Atributo interno
 
         self.swing_active: bool = False 
         self.swing_direction: int = 0 
@@ -41,8 +41,16 @@ class Sword(pygame.sprite.Sprite):
 
         self.sword_pivot_offset_local = pygame.math.Vector2(self.base_width / 2, self.base_height * 0.9)
 
+    @property # Getter para current_damage
+    def current_damage(self) -> int:
+        return self._current_damage
 
-    def try_grow_by_coins(self, total_coins: int) -> None:
+    @current_damage.setter # Setter para current_damage
+    def current_damage(self, value: int) -> None:
+        self._current_damage = max(0, value) # Dano não deve ser negativo
+        print(f"Dano da espada atualizado para: {self._current_damage}")
+
+    def _try_grow_by_coins(self, total_coins: int) -> None: 
         new_growth_level = total_coins // COINS_FOR_SWORD_LEVEL_UP
         
         if new_growth_level > self.current_growth_level:
@@ -53,12 +61,11 @@ class Sword(pygame.sprite.Sprite):
             self.sword_pivot_offset_local = pygame.math.Vector2(self.base_width / 2, self.scaled_current_image.get_height() * 0.9)
 
             print(f"Espada cresceu! Nível: {self.current_growth_level}, Altura: {new_height:.2f}px")
-            self.current_damage = 5 + (self.current_growth_level * 2) 
+            self.current_damage = 5 + (self.current_growth_level * 2) # Chama o setter da property
 
     def start_swing(self, direction: int) -> None:
         if not self.swing_active: 
             self.swing_active = True
-            self.is_attacking = True 
             self.swing_direction = direction
             self.current_swing_frame = 0 
 
@@ -70,8 +77,6 @@ class Sword(pygame.sprite.Sprite):
                 self.swing_end_angle = self.SWING_OVERHEAD_LEFT_END_ANGLE
             
             self.swing_angle = self.swing_start_angle 
-            # print(f"Swing START: Active={self.swing_active}, Dir={self.swing_direction}, Angle={self.swing_angle:.2f}") # Debug removido
-            # TODO: Tocar som de balanço da espada aqui
 
     def update(self, player_center: tuple[int, int], player_facing_right: bool) -> None:
         if self.swing_active:
@@ -82,7 +87,6 @@ class Sword(pygame.sprite.Sprite):
             
             if progress >= 1.0:
                 self.swing_active = False
-                self.is_attacking = False 
                 self.swing_angle = self.swing_end_angle 
 
         else: 
@@ -104,8 +108,6 @@ class Sword(pygame.sprite.Sprite):
             else:
                 self.swing_angle = target_angle
             
-            self.is_attacking = False
-
 
         rotated_image = pygame.transform.rotate(self.scaled_current_image, self.swing_angle)
         
@@ -128,22 +130,16 @@ class Sword(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
     def get_damage(self) -> int:
-        return self.current_damage
+        return self.current_damage # Acessa a property
 
     def repel_projectile(self, projectile: Projectile, player_facing_right: bool) -> None:
         """
         Repela um projétil, invertendo sua direção e talvez aumentando sua velocidade.
-        Args:
-            projectile (Projectile): O projétil a ser repelido.
-            player_facing_right (bool): Direção para onde o jogador está virado (para repelir na direção certa).
         """
-        # Inverte a direção do projétil
         projectile.direction_x *= -1 
         projectile.direction_y *= -1 
         
         projectile.speed *= 1.5 
         
         projectile.repelled = True 
-        projectile.repeller_damage = self.get_damage() 
-
-
+        projectile.repeller_damage = self.get_damage()
